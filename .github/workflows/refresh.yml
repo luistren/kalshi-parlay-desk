@@ -1,0 +1,41 @@
+name: Refresh Kalshi board
+
+on:
+  schedule:
+    # 12:00 UTC daily = 8:00 AM America/New_York (EDT) / 7:00 AM (EST)
+    - cron: "0 12 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Rebuild board from live Kalshi data
+        env:
+          BOARD_TARGETS: index.html
+        run: node refresh-board.mjs
+
+      - name: Commit if changed
+        run: |
+          git config user.name "kalshi-refresh-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- index.html; then
+            echo "No board changes."
+          else
+            git add index.html
+            git commit -m "Daily refresh $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi
