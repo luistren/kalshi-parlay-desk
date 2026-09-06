@@ -1,0 +1,1947 @@
+<!doctype html>
+<html><head><meta charset="utf8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>Kalshi Parlay helper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap">
+
+<style>
+  :root {
+    --bg: #f3f4f6;
+    --panel: #ffffff;
+    --panel-2: #f6f7f9;
+    --border: #dee2e8;
+    --border-strong: #c9d0da;
+    --text: #191f28;
+    --muted: #59636f;
+    --faint: #8a939f;
+    --accent: #a96c16;
+    --accent-soft: #f3e7d2;
+    --teal: #1c8378;
+    --teal-soft: #d9ece9;
+    --good: #1c9a48;
+    --warn: #b0791a;
+    --crit: #cf3d31;
+    --shadow: 0 1px 2px rgba(20,28,38,.06), 0 8px 24px rgba(20,28,38,.05);
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c0f13;
+      --panel: #141922;
+      --panel-2: #1a212b;
+      --border: #262f3b;
+      --border-strong: #33404f;
+      --text: #e7eaf0;
+      --muted: #93a0b1;
+      --faint: #6b7787;
+      --accent: #e3a94a;
+      --accent-soft: #33291a;
+      --teal: #46bbae;
+      --teal-soft: #16302e;
+      --good: #47b95f;
+      --warn: #d99a2b;
+      --crit: #ef645a;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c0f13;
+    --panel: #141922;
+    --panel-2: #1a212b;
+    --border: #262f3b;
+    --border-strong: #33404f;
+    --text: #e7eaf0;
+    --muted: #93a0b1;
+    --faint: #6b7787;
+    --accent: #e3a94a;
+    --accent-soft: #33291a;
+    --teal: #46bbae;
+    --teal-soft: #16302e;
+    --good: #47b95f;
+    --warn: #d99a2b;
+    --crit: #ef645a;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 30px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px 80px; }
+
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 4px; }
+
+  .mono { font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; }
+  .num { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .head-inner {
+    max-width: 1120px; margin: 0 auto; padding: 16px 22px 14px;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px;
+  }
+  .brand {
+    font-family: "Bricolage Grotesque", "IBM Plex Sans", sans-serif;
+    font-weight: 700; font-size: 22px; letter-spacing: -0.02em;
+    color: var(--text); margin: 0;
+  }
+  .brand .dot { color: var(--accent); }
+  .tagline { color: var(--muted); font-size: 13.5px; }
+  .meta-row {
+    max-width: 1120px; margin: 0 auto; padding: 0 22px 14px;
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .chip {
+    font-size: 12px; font-weight: 500;
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    color: var(--muted); background: var(--panel);
+    display: inline-flex; align-items: center; gap: 6px;
+    white-space: nowrap;
+  }
+  .chip b { color: var(--text); font-weight: 600; }
+  .chip .led { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+  .chip.snap { border-color: color-mix(in srgb, var(--teal) 45%, transparent); color: var(--teal); }
+
+  .refresh-btn {
+    font: inherit; font-weight: 600; font-size: 12px; cursor: pointer;
+    color: var(--text); background: var(--panel);
+    border: 1px solid var(--border-strong); border-radius: 999px;
+    padding: 4px 13px; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .refresh-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .refresh-btn:disabled { opacity: 0.6; cursor: default; }
+  .refresh-btn .ic { font-size: 13px; line-height: 1; }
+  .meta-note {
+    max-width: 1120px; margin: 0 auto; padding: 0 22px 16px;
+    font-size: 11.5px; color: var(--muted); line-height: 1.5;
+  }
+  .meta-note b { color: var(--text); }
+
+  /* ---------- Calendar strip ---------- */
+  .cal-wrap { margin-top: 6px; }
+  .cal-label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--faint); font-weight: 700; margin: 8px 0 2px;
+  }
+  .cal-strip {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding: 8px 0 6px; scrollbar-width: thin;
+  }
+  .cal-day {
+    flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 1px;
+    min-width: 60px; padding: 9px 13px;
+    border: 1px solid var(--border-strong); border-radius: 11px;
+    background: var(--panel); color: var(--muted); cursor: pointer;
+    font: inherit; position: relative;
+  }
+  .cal-day:hover { border-color: var(--teal); color: var(--text); }
+  .cal-day.active {
+    border-color: var(--teal); background: var(--teal-soft);
+    color: var(--text); box-shadow: var(--shadow);
+  }
+  .cal-day .cd-dow {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    font-weight: 700; color: var(--faint);
+  }
+  .cal-day.active .cd-dow { color: var(--teal); }
+  .cal-day .cd-d {
+    font-family: "Bricolage Grotesque", sans-serif; font-weight: 700;
+    font-size: 20px; line-height: 1.05; font-variant-numeric: tabular-nums;
+  }
+  .cal-day .cd-mon { font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.06em; }
+  .cal-day.forming { border-style: dashed; }
+  .cal-day .cd-dot {
+    position: absolute; top: 6px; right: 6px;
+    width: 5px; height: 5px; border-radius: 50%; background: var(--warn);
+  }
+  .cal-day .cd-n { font-size: 9.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
+
+  .forming-banner {
+    margin: 2px 0 22px;
+    border: 1px solid var(--border-strong); border-left: 3px solid var(--warn);
+    background: var(--panel); border-radius: var(--radius);
+    padding: 12px 16px; font-size: 13px; color: var(--muted);
+  }
+  .forming-banner b { color: var(--text); }
+
+  /* ---------- Disclaimer ---------- */
+  .disclaimer {
+    margin-top: 18px;
+    border: 1px solid var(--border-strong); border-left: 3px solid var(--accent);
+    background: var(--panel); border-radius: var(--radius);
+    padding: 12px 16px; font-size: 13px; color: var(--muted);
+  }
+  .disclaimer b { color: var(--text); }
+
+  .timing {
+    margin-top: 12px;
+    border: 1px solid var(--border-strong); border-left: 3px solid var(--teal);
+    background: var(--panel); border-radius: var(--radius); padding: 12px 16px;
+  }
+  .timing h4 {
+    margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--teal); font-weight: 700;
+  }
+  .timing ul { margin: 0; padding-left: 18px; }
+  .timing li { font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
+  .timing li b { color: var(--text); font-weight: 600; }
+  .timing .now { color: var(--crit); font-weight: 700; }
+
+  section { margin-top: 40px; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+  .sec-head h2 {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 700; font-size: 19px; letter-spacing: -0.015em;
+    margin: 0; color: var(--text); text-wrap: balance;
+  }
+  .sec-head .kount { font-size: 12px; color: var(--faint); }
+  .sec-sub { color: var(--muted); font-size: 13.5px; margin: 2px 0 18px; max-width: 68ch; }
+
+  .kpis {
+    display: grid; gap: 12px; grid-template-columns: repeat(6, 1fr); margin-top: 22px;
+  }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 13px 14px 12px; box-shadow: var(--shadow);
+  }
+  .kpi .k-label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--faint); font-weight: 600;
+  }
+  .kpi .k-val {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 700; font-size: 25px; letter-spacing: -0.02em;
+    margin-top: 5px; line-height: 1.05; font-variant-numeric: tabular-nums;
+  }
+  .kpi .k-val.accent { color: var(--accent); }
+  .kpi .k-val.teal { color: var(--teal); }
+  .kpi .k-note { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+  .parlays { display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); margin-top: 4px; }
+  .parlay {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .parlay.feature { grid-column: 1 / -1; }
+  .p-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 14px; padding: 15px 16px 12px; border-bottom: 1px solid var(--border);
+  }
+  .p-name {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 700; font-size: 16.5px; letter-spacing: -0.01em; margin: 0;
+  }
+  .p-legcount {
+    font-size: 11px; font-weight: 600; color: var(--teal);
+    background: var(--teal-soft); border: 1px solid color-mix(in srgb, var(--teal) 35%, transparent);
+    padding: 2px 8px; border-radius: 999px; margin-top: 5px; display: inline-block;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .p-payout { text-align: right; flex-shrink: 0; }
+  .p-payout .mult {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 800; font-size: 28px; color: var(--accent);
+    letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums;
+  }
+  .p-payout .cap { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.07em; }
+
+  .legs { list-style: none; margin: 0; padding: 6px 16px 10px; display: flex; flex-direction: column; }
+  .leg {
+    display: grid; grid-template-columns: 54px 1fr auto;
+    align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px dashed var(--border);
+  }
+  .leg:last-child { border-bottom: 0; }
+  .sport-tag {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; text-align: center;
+    padding: 3px 0; border-radius: 5px;
+    border: 1px solid var(--border-strong); color: var(--muted);
+  }
+  .sport-tag.mlb { color: #c56b2c; border-color: color-mix(in srgb, #c56b2c 40%, transparent); }
+  .sport-tag.soc { color: var(--teal); border-color: color-mix(in srgb, var(--teal) 40%, transparent); }
+  .sport-tag.wnba { color: #9152c9; border-color: color-mix(in srgb, #9152c9 42%, transparent); }
+  :root[data-theme="dark"] .sport-tag.mlb, :root:not([data-theme="light"]) .sport-tag.mlb { color: #e0904f; }
+  :root[data-theme="dark"] .sport-tag.wnba, :root:not([data-theme="light"]) .sport-tag.wnba { color: #b681e6; }
+  .leg .match { font-size: 13px; color: var(--muted); }
+  .leg .pick { font-weight: 600; color: var(--text); }
+  .leg .price { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; text-align: right; }
+  .leg .price .win {
+    color: var(--teal); font-weight: 700; font-size: 13.5px;
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums;
+  }
+  .leg .price .sub {
+    color: var(--faint); font-size: 10.5px; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .leg .price .mv { font-weight: 700; }
+  .leg .price .mv.up { color: var(--good); }
+  .leg .price .mv.dn { color: var(--crit); }
+  .leg .price .mv.fl { color: var(--faint); }
+
+  .p-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border); background: var(--panel-2);
+  }
+  .p-stat { padding: 10px 14px; border-right: 1px solid var(--border); }
+  .p-stat:last-child { border-right: 0; }
+  .p-stat .s-l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--faint); font-weight: 600; }
+  .p-stat .s-v { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 15px; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .s-v.neg { color: var(--crit); }
+  .s-v.pos { color: var(--good); }
+
+  .p-notes { padding: 12px 16px 15px; display: flex; flex-direction: column; gap: 7px; }
+  .p-note { font-size: 12px; color: var(--muted); display: grid; grid-template-columns: 92px 1fr; gap: 10px; }
+  .p-note .n-l {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    font-weight: 700; color: var(--faint); padding-top: 1px;
+  }
+  .p-note.inval .n-l { color: var(--crit); }
+  .p-note.size .n-l { color: var(--teal); }
+  .p-note.risk .n-l { color: var(--warn); }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 13px; }
+  thead th {
+    text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--faint); font-weight: 600; padding: 11px 14px;
+    border-bottom: 1px solid var(--border-strong); background: var(--panel-2); white-space: nowrap;
+  }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.pick { font-weight: 600; }
+  td .r { display: block; text-align: right; }
+  th.r { text-align: right; }
+  .bar {
+    position: relative; height: 6px; width: 82px; border-radius: 3px;
+    background: var(--panel-2); border: 1px solid var(--border); overflow: hidden;
+  }
+  .bar > i { position: absolute; inset: 0 auto 0 0; background: var(--teal); border-radius: 3px; }
+  .tier { font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; letter-spacing: 0.03em; }
+  .tier.a { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+  .tier.b { color: var(--warn); background: color-mix(in srgb, var(--warn) 15%, transparent); }
+  .tier.c { color: var(--crit); background: color-mix(in srgb, var(--crit) 14%, transparent); }
+  .tier.skip { color: var(--faint); background: color-mix(in srgb, var(--faint) 16%, transparent); }
+  .drag { color: var(--crit); }
+  .tbl-h {
+    font-family: "Bricolage Grotesque", sans-serif; font-size: 13px; letter-spacing: 0.02em;
+    margin: 22px 0 8px; color: var(--muted);
+  }
+
+  .method { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 6px; }
+  .mcard { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
+  .mcard h3 { font-family: "Bricolage Grotesque", sans-serif; font-size: 14px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .mcard.facts h3 { color: var(--teal); }
+  .mcard.assume h3 { color: var(--accent); }
+  .mcard ul { margin: 0; padding-left: 18px; }
+  .mcard li { font-size: 12.5px; color: var(--muted); margin-bottom: 5px; }
+  .mcard li b { color: var(--text); font-weight: 600; }
+
+  footer {
+    margin-top: 46px; padding-top: 18px; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--faint);
+  }
+  footer b { color: var(--muted); }
+
+  .room { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; max-width: 560px; }
+  .room .r-tag {
+    font-size: 11px; font-weight: 600; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    padding: 2px 8px; border-radius: 999px; margin-top: 5px; display: inline-block;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .room .r-state {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700;
+    flex-shrink: 0; padding-top: 3px; color: var(--faint);
+  }
+  .room .r-state.live { color: var(--good); }
+  .room .r-state.live::before {
+    content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--good); margin-right: 5px; vertical-align: 1px;
+  }
+  .room .r-state.ro { color: var(--faint); }
+  .r-msgs {
+    list-style: none; margin: 0; padding: 12px 16px; display: flex; flex-direction: column;
+    gap: 12px; overflow-y: auto; min-height: 160px; max-height: 320px; flex: 1;
+  }
+  .r-empty { color: var(--faint); font-size: 12.5px; text-align: center; padding: 28px 8px; }
+  .r-msg { display: flex; flex-direction: column; gap: 2px; }
+  .r-msg .r-meta { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .r-msg .r-name { color: var(--teal); font-weight: 600; }
+  .r-msg .r-body { font-size: 13px; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .r-compose {
+    border-top: 1px solid var(--border); background: var(--panel-2);
+    padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .r-compose input, .r-compose textarea {
+    font: inherit; color: var(--text); background: var(--panel);
+    border: 1px solid var(--border-strong); border-radius: 7px; padding: 7px 9px; width: 100%;
+  }
+  .r-compose textarea { resize: vertical; min-height: 50px; line-height: 1.45; }
+  .r-compose input:disabled, .r-compose textarea:disabled { opacity: 0.55; }
+  .r-row { display: flex; align-items: center; gap: 10px; }
+  .r-row .r-count { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; margin-left: auto; }
+  .r-send {
+    font: inherit; font-weight: 600; font-size: 13px; cursor: pointer; color: #fff;
+    background: var(--teal); border: 1px solid color-mix(in srgb, var(--teal) 55%, #000 12%);
+    border-radius: 7px; padding: 7px 18px;
+  }
+  .r-send:disabled { opacity: 0.45; cursor: not-allowed; }
+  .r-note { font-size: 11px; color: var(--muted); margin: 0; }
+  .r-note b { color: var(--text); }
+
+  .sizer {
+    margin-top: 24px;
+    border: 1px solid var(--border-strong); border-left: 3px solid var(--accent);
+    background: var(--panel); border-radius: var(--radius);
+    padding: 15px 17px 14px; box-shadow: var(--shadow);
+  }
+  .sizer h4 {
+    margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--accent); font-weight: 700;
+  }
+  .sz-sub { margin: 0 0 13px; font-size: 12.5px; color: var(--muted); max-width: 72ch; }
+  .sz-sub b { color: var(--text); }
+  .sz-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .sz-controls label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em;
+    font-weight: 700; color: var(--faint);
+  }
+  .sz-input-wrap { position: relative; display: inline-flex; align-items: center; }
+  .sz-input-wrap .cur {
+    position: absolute; left: 10px; color: var(--muted);
+    font-family: "IBM Plex Mono", monospace; font-size: 14px; pointer-events: none;
+  }
+  .sizer input[type="number"] {
+    font: inherit; font-family: "IBM Plex Mono", monospace; font-size: 15px;
+    font-variant-numeric: tabular-nums; color: var(--text); background: var(--panel-2);
+    border: 1px solid var(--border-strong); border-radius: 7px;
+    padding: 8px 10px 8px 22px; width: 122px;
+  }
+  .sizer input[type="range"] { flex: 1; min-width: 150px; max-width: 340px; accent-color: var(--accent); }
+  .sz-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sz-preset {
+    font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text);
+    background: var(--panel-2); border: 1px solid var(--border-strong);
+    border-radius: 999px; padding: 4px 11px;
+  }
+  .sz-preset:hover { border-color: var(--accent); color: var(--accent); }
+  .sz-note { font-size: 11px; color: var(--faint); margin: 10px 0 0; line-height: 1.5; }
+  .sz-note b { color: var(--muted); }
+
+  .p-size-out {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border);
+    background: color-mix(in srgb, var(--accent-soft) 45%, var(--panel));
+  }
+  .pso { padding: 10px 14px; border-right: 1px solid var(--border); }
+  .pso:last-child { border-right: 0; }
+  .pso-l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--faint); font-weight: 600; display: block; }
+  .pso-v {
+    font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 17px;
+    margin-top: 3px; display: block; font-variant-numeric: tabular-nums; line-height: 1.1;
+  }
+  .pso-v.accent { color: var(--accent); }
+  .pso-v.teal { color: var(--teal); }
+  .pso-v.neg { color: var(--crit); }
+  .pso-sub { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  @media (max-width: 560px) {
+    .p-size-out { grid-template-columns: repeat(2, 1fr); }
+    .pso:nth-child(2) { border-right: 0; }
+    .pso:nth-child(1), .pso:nth-child(2) { border-bottom: 1px solid var(--border); }
+  }
+  @media (max-width: 900px) {
+    .kpis { grid-template-columns: repeat(3, 1fr); }
+    .parlays { grid-template-columns: 1fr; }
+    .method { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .p-stats { grid-template-columns: repeat(2, 1fr); }
+    .p-stat:nth-child(2) { border-right: 0; }
+    .p-stat:nth-child(1), .p-stat:nth-child(2) { border-bottom: 1px solid var(--border); }
+    .p-note { grid-template-columns: 1fr; gap: 2px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header>
+  <div class="head-inner">
+    <h1 class="brand">Kalshi Parlay Desk<span class="dot">.</span></h1>
+    <span class="tagline">Daily-refreshed 3–6 leg parlay board · MLB &amp; soccer</span>
+  </div>
+  <div class="meta-row">
+    <button class="refresh-btn" id="refresh-btn" type="button"><span class="ic">↻</span> Refresh</button>
+    <span class="chip snap">Data <b id="gen-label">—</b></span>
+    <span class="chip"><span class="led"></span> Auto-refresh <b>~8:00a ET daily</b></span>
+    <span class="chip">Source <b>api.elections.kalshi.com</b></span>
+    <span class="chip">Research / preview only</span>
+  </div>
+  <p class="meta-note">
+    Pick a date on the calendar to see that day's games and its auto-built parlay tickets. A scheduled Claude agent
+    re-pulls Kalshi every morning around <b>8:00a ET</b>, rebuilds every day on the board, and republishes this page —
+    the page itself can't call the Kalshi API (the artifact sandbox blocks outside requests), so <b>Refresh</b> just
+    reloads to the latest published snapshot. Days marked with a dot are still <b>forming</b> — thin markets, provisional prices.
+  </p>
+</header>
+
+<div class="wrap">
+
+  <div class="cal-wrap">
+    <div class="cal-label">Board calendar — days with live Kalshi markets</div>
+    <div class="cal-strip" id="cal-strip"></div>
+  </div>
+
+  <div class="disclaimer">
+    <b>Research &amp; preview only.</b> Nothing here is an executed order. Every ticket needs your explicit
+    confirmation before it goes on. Kalshi does not net these legs into one product for you — the quoted
+    multiples assume you <b>compound</b> each win into the next leg. Buying the legs as separate YES contracts
+    pays out differently. No authenticated account access, so your live balance, positions and resting orders
+    were <b>not</b> checked — sizing is generic.
+  </div>
+
+  <div class="sizer" id="sizer">
+    <h4>Stake sizer</h4>
+    <p class="sz-sub">
+      Enter what you’d put on a ticket. Every card for the selected day then shows your <b>payout if all legs hit</b>,
+      your <b>fair cash-out</b> right now (stake minus the spread you paid), and your <b>max loss</b>.
+    </p>
+    <div class="sz-controls">
+      <label for="sz-stake">Stake per ticket</label>
+      <span class="sz-input-wrap"><span class="cur">$</span><input id="sz-stake" type="number" min="0" step="5" value="100" inputmode="decimal" aria-label="Stake per ticket in dollars"></span>
+      <input id="sz-range" type="range" min="0" max="500" step="5" value="100" aria-label="Stake slider">
+      <span class="sz-presets">
+        <button type="button" class="sz-preset" data-v="25">$25</button>
+        <button type="button" class="sz-preset" data-v="50">$50</button>
+        <button type="button" class="sz-preset" data-v="100">$100</button>
+        <button type="button" class="sz-preset" data-v="250">$250</button>
+        <button type="button" class="sz-preset" data-v="500">$500</button>
+      </span>
+    </div>
+    <p class="sz-note">
+      Same stake applied to every ticket on the day for comparison — totals: staked <b id="sz-total-stake">—</b> ·
+      fair cash-out value <b id="sz-total-cash">—</b>. Tickets share legs, so you cannot win them all.
+      “Fair cash-out” is an entry-price estimate only.
+    </p>
+  </div>
+
+  <div id="day-view"></div>
+
+  <!-- Community room — persistent across days -->
+  <section>
+    <div class="sec-head"><h2>Value 5 Room</h2><span class="kount">community · open chat</span></div>
+    <p class="sec-sub">Shared thread for the board — reads, injuries, line moves. Anyone with edit access to the link can post.</p>
+    <article class="room" id="value5-room">
+      <div class="p-top">
+        <div>
+          <h3 class="p-name">Value 5 Room</h3>
+          <span class="r-tag">community · open chat</span>
+        </div>
+        <span class="r-state" id="room-state">…</span>
+      </div>
+      <ul class="r-msgs" id="room-msgs" aria-live="polite" aria-label="Value 5 community messages"><li class="r-empty" id="room-empty">No messages yet. Anyone with the link can start the thread.</li></ul>
+      <form class="r-compose" id="room-form" autocomplete="off">
+        <input id="room-name" type="text" maxlength="24" placeholder="Display name" aria-label="Display name">
+        <textarea id="room-text" maxlength="500" rows="2" placeholder="Talk the board — reads, injuries, line moves…" aria-label="Message"></textarea>
+        <div class="r-row">
+          <button class="r-send" id="room-send" type="submit" disabled="">Post</button>
+          <span class="r-count"><span id="room-count">0</span>/500</span>
+        </div>
+        <p class="r-note" id="room-note">Connecting to the shared room…</p>
+      </form>
+    </article>
+  </section>
+
+  <!-- Forward legs — static, page level -->
+  <section id="forward-sec">
+    <div class="sec-head"><h2>Later this week — forward legs</h2><span class="kount">re-pull near kickoff</span></div>
+    <p class="sec-sub">
+      Markets that are live now but resolve after the calendar window. Not built into any ticket yet — listed for planning.
+      Bundesliga settles full-time (W/D/L); EFL Cup settles <b>regulation time</b> (a 90-minute draw loses the pick even if
+      the team advances on penalties).
+    </p>
+    <div class="table-scroll" id="forward-tbl"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>How the board is built</h2></div>
+    <div class="method">
+      <div class="mcard facts">
+        <h3>Confirmed — pulled by the scheduled agent</h3>
+        <ul>
+          <li>All YES <b>bid / ask / last</b>, <b>24h volume</b>, <b>open interest</b> and <b>close times</b> from <b>api.elections.kalshi.com/trade-api/v2</b> (series KXMLBGAME, KXBUNDESLIGAGAME, KXEFLCUPGAME, KXWNBAGAME), re-pulled every morning ~8:00a ET.</li>
+          <li><b>Win %</b> = Kalshi mid normalized to 100% (2-way for MLB, 3-way incl. the tie for soccer). <b>Entry</b> = YES ask. <b>Vig</b> = win % minus entry.</li>
+          <li>Each day's five tickets are assembled by rule: highest-win-% liquid favorites for the chalk tickets, highest-volume favorites for Value 5, the MLB block plus a soccer leg or two for Longshot 6.</li>
+          <li>Ticket math is computed in-page from the legs: entry cost = product of asks, all-N-hit = product of no-vig win probs, EV = all-hit × payout − 1.</li>
+        </ul>
+      </div>
+      <div class="mcard assume">
+        <h3>Assumptions &amp; limits</h3>
+        <ul>
+          <li><b>“Fair” = de-vigged Kalshi mid</b>, not an independent model. No injury / lineup / weather / pitching read is run.</li>
+          <li><b>Compounding basis.</b> Kalshi does not auto-parlay these; separate YES contracts resolve independently and won't reproduce the quoted multiple.</li>
+          <li><b>Correlation not modeled.</b> All-favorite tickets behave like one bet on a “favorite day”; EV assumes independence and is optimistic on variance.</li>
+          <li><b>The public share link does not auto-update.</b> Each morning's republish is visible when you open the artifact; pushing it to everyone with the link still needs the share pin moved once per publish.</li>
+          <li>Lines move. Re-pull any leg at lineup lock / kickoff before you enter it.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p><b>Invalidation, global:</b> skip or re-check a ticket if any leg’s YES ask is ≥3¢ worse than shown, a named MLB starter is scratched, a game is postponed, or a de-vigged price crosses 0.50 and flips the favorite.</p>
+    <p><b>Sizing, global:</b> every ticket here is negative EV after spread. Treat as capped-risk entertainment. Suggested caps — 3-leg ≤1%, 4-leg ≤0.75%, 5-leg ≤0.4%, 6-leg ≤0.25% of prediction-market bankroll; ≤3–4% total across all open tickets.</p>
+    <p><b>Refresh button:</b> reloads to the latest published snapshot. Live re-pulls come from the scheduled ~8:00a ET agent, or ask Claude for one on demand.</p>
+    <p style="margin-top:10px;">Kalshi Parlay Desk · <span id="foot-gen">—</span> · research / preview only, no orders placed · you confirm every execution.</p>
+  </footer>
+
+</div>
+
+<script type="application/json" id="board-data">
+{
+  "generatedLabel": "Sun Sep 6 2026, 12:09p ET auto-refresh",
+  "days": [
+    {
+      "id": "2026-09-06",
+      "dow": "Sun",
+      "d": 6,
+      "mon": "Sep",
+      "label": "Sun Sep 6",
+      "status": "full",
+      "parlaySub": "Ordered short→long. Each leg shows its current Kalshi win % (mid) and ¢ entry (YES ask). Entry cost = product of asks; all-N-hit = product of no-vig win probabilities; EV is per $1 after spread.",
+      "swapNote": "<ul><li>Rebuilt from the latest pull — every leg is the top-win-% liquid favorite available in its game. Move arrows read “—”; the board is regenerated fresh each morning, not diffed.<\/li><\/ul>",
+      "timing": [
+        "<b>MLB — 14 games.<\/b> First pitches 9:20p–3:10p ET. <span class='now'>Re-pull any leg before you enter it.<\/span>",
+        "<b>Soccer — 1 game.<\/b> Frankfurt vs Augsburg ~2:30p ET.",
+        "<span class='now'>No WNBA.<\/span> Kalshi has no open per-game WNBA markets — the regular season is over."
+      ],
+      "parlays": [
+        {
+          "name": "Blue Chip 3",
+          "tag": "3 legs · cross-sport chalk",
+          "feature": true,
+          "legs": [
+            {
+              "sport": "mlb",
+              "match": "A's vs Seattle",
+              "pick": "Seattle",
+              "winPct": 64.5,
+              "entry": 65
+            },
+            {
+              "sport": "mlb",
+              "match": "Los Angeles A vs Pittsburgh",
+              "pick": "Pittsburgh",
+              "winPct": 62.5,
+              "entry": 63
+            },
+            {
+              "sport": "soc",
+              "match": "Frankfurt vs Augsburg",
+              "pick": "Frankfurt",
+              "winPct": 76.1,
+              "entry": 77
+            }
+          ],
+          "notes": {
+            "inval": "Re-check every ask at lineup lock; skip if any leg's YES ask is ≥3¢ worse than shown; the soccer leg loses on a draw.",
+            "size": "≤1% of prediction-market bankroll. 3 correlated favorites — treat as capped-risk.",
+            "risk": "3 favorites stacked; a favorite-heavy or favorite-light day moves them together. Lowest-win-% leg is Frankfurt at 76.1%."
+          }
+        },
+        {
+          "name": "Balanced 4",
+          "tag": "4 legs · cross-sport",
+          "feature": false,
+          "legs": [
+            {
+              "sport": "mlb",
+              "match": "A's vs Seattle",
+              "pick": "Seattle",
+              "winPct": 64.5,
+              "entry": 65
+            },
+            {
+              "sport": "mlb",
+              "match": "Los Angeles A vs Pittsburgh",
+              "pick": "Pittsburgh",
+              "winPct": 62.5,
+              "entry": 63
+            },
+            {
+              "sport": "mlb",
+              "match": "Detroit vs Cleveland",
+              "pick": "Cleveland",
+              "winPct": 60.5,
+              "entry": 61
+            },
+            {
+              "sport": "soc",
+              "match": "Frankfurt vs Augsburg",
+              "pick": "Frankfurt",
+              "winPct": 76.1,
+              "entry": 77
+            }
+          ],
+          "notes": {
+            "inval": "Re-check every ask at lineup lock; skip if any leg's YES ask is ≥3¢ worse than shown; the soccer leg loses on a draw.",
+            "size": "≤0.75% of prediction-market bankroll. 4 correlated favorites — treat as capped-risk.",
+            "risk": "4 favorites stacked; a favorite-heavy or favorite-light day moves them together. Lowest-win-% leg is Frankfurt at 76.1%."
+          }
+        },
+        {
+          "name": "Value 5",
+          "tag": "5 legs · high-volume MLB",
+          "feature": false,
+          "legs": [
+            {
+              "sport": "mlb",
+              "match": "Milwaukee vs Cincinnati",
+              "pick": "Milwaukee",
+              "winPct": 57.5,
+              "entry": 58
+            },
+            {
+              "sport": "mlb",
+              "match": "Boston vs Baltimore",
+              "pick": "Boston",
+              "winPct": 54.5,
+              "entry": 55
+            },
+            {
+              "sport": "mlb",
+              "match": "Chicago C vs Miami",
+              "pick": "Chicago C",
+              "winPct": 57.5,
+              "entry": 58
+            },
+            {
+              "sport": "mlb",
+              "match": "St. Louis vs Colorado",
+              "pick": "St. Louis",
+              "winPct": 56.1,
+              "entry": 56
+            },
+            {
+              "sport": "mlb",
+              "match": "Detroit vs Cleveland",
+              "pick": "Cleveland",
+              "winPct": 60.5,
+              "entry": 61
+            }
+          ],
+          "notes": {
+            "inval": "Re-check every ask at lineup lock; skip if any leg's YES ask is ≥3¢ worse than shown.",
+            "size": "≤0.4% of prediction-market bankroll. 5 correlated favorites — treat as capped-risk.",
+            "risk": "5 favorites stacked; a favorite-heavy or favorite-light day moves them together. Lowest-win-% leg is Cleveland at 60.5%."
+          }
+        },
+        {
+          "name": "Longshot 6",
+          "tag": "6 legs · stretch ticket",
+          "feature": true,
+          "legs": [
+            {
+              "sport": "mlb",
+              "match": "A's vs Seattle",
+              "pick": "Seattle",
+              "winPct": 64.5,
+              "entry": 65
+            },
+            {
+              "sport": "mlb",
+              "match": "Los Angeles A vs Pittsburgh",
+              "pick": "Pittsburgh",
+              "winPct": 62.5,
+              "entry": 63
+            },
+            {
+              "sport": "mlb",
+              "match": "Detroit vs Cleveland",
+              "pick": "Cleveland",
+              "winPct": 60.5,
+              "entry": 61
+            },
+            {
+              "sport": "mlb",
+              "match": "San Francisco vs New York M",
+              "pick": "New York M",
+              "winPct": 60.1,
+              "entry": 60
+            },
+            {
+              "sport": "mlb",
+              "match": "Milwaukee vs Cincinnati",
+              "pick": "Milwaukee",
+              "winPct": 57.5,
+              "entry": 58
+            },
+            {
+              "sport": "soc",
+              "match": "Frankfurt vs Augsburg",
+              "pick": "Frankfurt",
+              "winPct": 76.1,
+              "entry": 77
+            }
+          ],
+          "notes": {
+            "inval": "Re-check every ask at lineup lock; skip if any leg's YES ask is ≥3¢ worse than shown; the soccer leg loses on a draw.",
+            "size": "≤0.25% of prediction-market bankroll. 6 correlated favorites — treat as capped-risk.",
+            "risk": "6 favorites stacked; a favorite-heavy or favorite-light day moves them together. Lowest-win-% leg is Frankfurt at 76.1%."
+          }
+        }
+      ],
+      "games": {
+        "mlb": [
+          {
+            "sport": "mlb",
+            "away": "Milwaukee",
+            "home": "Cincinnati",
+            "pick": "Milwaukee",
+            "entry": 58,
+            "winPct": 57.5,
+            "vol": "759k",
+            "tier": "A",
+            "time": "3:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Boston",
+            "home": "Baltimore",
+            "pick": "Boston",
+            "entry": 55,
+            "winPct": 54.5,
+            "vol": "131k",
+            "tier": "A",
+            "time": "4:35p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Atlanta",
+            "home": "Philadelphia",
+            "pick": "Atlanta",
+            "entry": 51,
+            "winPct": 50.5,
+            "vol": "128k",
+            "tier": "A",
+            "time": "4:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "New York Y",
+            "home": "San Diego",
+            "pick": "New York Y",
+            "entry": 51,
+            "winPct": 50.5,
+            "vol": "99k",
+            "tier": "A",
+            "time": "7:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Chicago C",
+            "home": "Miami",
+            "pick": "Chicago C",
+            "entry": 58,
+            "winPct": 57.5,
+            "vol": "98k",
+            "tier": "A",
+            "time": "4:40p"
+          },
+          {
+            "sport": "mlb",
+            "away": "St. Louis",
+            "home": "Colorado",
+            "pick": "St. Louis",
+            "entry": 56,
+            "winPct": 56.1,
+            "vol": "58k",
+            "tier": "A",
+            "time": "6:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Arizona",
+            "home": "Houston",
+            "pick": "Houston",
+            "entry": 51,
+            "winPct": 50.5,
+            "vol": "55k",
+            "tier": "A",
+            "time": "5:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Tampa Bay",
+            "home": "Texas",
+            "pick": "Texas",
+            "entry": 51,
+            "winPct": 50.5,
+            "vol": "45k",
+            "tier": "A",
+            "time": "5:35p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Detroit",
+            "home": "Cleveland",
+            "pick": "Cleveland",
+            "entry": 61,
+            "winPct": 60.5,
+            "vol": "37k",
+            "tier": "B",
+            "time": "4:40p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Los Angeles A",
+            "home": "Pittsburgh",
+            "pick": "Pittsburgh",
+            "entry": 63,
+            "winPct": 62.5,
+            "vol": "33k",
+            "tier": "B",
+            "time": "4:35p"
+          },
+          {
+            "sport": "mlb",
+            "away": "A's",
+            "home": "Seattle",
+            "pick": "Seattle",
+            "entry": 65,
+            "winPct": 64.5,
+            "vol": "33k",
+            "tier": "B",
+            "time": "7:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "San Francisco",
+            "home": "New York M",
+            "pick": "New York M",
+            "entry": 60,
+            "winPct": 60.1,
+            "vol": "24k",
+            "tier": "B",
+            "time": "4:40p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Toronto",
+            "home": "Kansas City",
+            "pick": "Toronto",
+            "entry": 54,
+            "winPct": 53.3,
+            "vol": "19k",
+            "tier": "B",
+            "time": "5:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Minnesota",
+            "home": "Chicago WS",
+            "pick": "Chicago WS",
+            "entry": 58,
+            "winPct": 57.5,
+            "vol": "18k",
+            "tier": "B",
+            "time": "9:20p"
+          }
+        ],
+        "soccer": [
+          {
+            "sport": "soc",
+            "away": "Frankfurt",
+            "home": "Augsburg",
+            "pick": "Frankfurt",
+            "entry": 77,
+            "winPct": 76.1,
+            "vol": "57k",
+            "tier": "A",
+            "time": "2:30p"
+          }
+        ],
+        "wnba": []
+      }
+    },
+    {
+      "id": "2026-09-07",
+      "dow": "Mon",
+      "d": 7,
+      "mon": "Sep",
+      "label": "Mon Sep 7",
+      "status": "forming",
+      "parlaySub": "Ordered short→long. Each leg shows its current Kalshi win % (mid) and ¢ entry (YES ask). Entry cost = product of asks; all-N-hit = product of no-vig win probabilities; EV is per $1 after spread.",
+      "swapNote": "<ul><li>Rebuilt from the latest pull — every leg is the top-win-% liquid favorite available in its game. Move arrows read “—”; the board is regenerated fresh each morning, not diffed.<\/li><\/ul>",
+      "timing": [
+        "<b>MLB — 10 games.<\/b> First pitches 5:10p–1:10a ET. <span class='now'>Re-pull any leg before you enter it.<\/span>",
+        "<span class='now'>No WNBA.<\/span> Kalshi has no open per-game WNBA markets — the regular season is over."
+      ],
+      "parlays": [],
+      "games": {
+        "mlb": [
+          {
+            "sport": "mlb",
+            "away": "Washington",
+            "home": "Los Angeles D",
+            "pick": "Los Angeles D",
+            "entry": 65,
+            "winPct": 64.5,
+            "vol": "33k",
+            "tier": "B",
+            "time": "1:10a"
+          },
+          {
+            "sport": "mlb",
+            "away": "Los Angeles A",
+            "home": "Boston",
+            "pick": "Boston",
+            "entry": 63,
+            "winPct": 62.3,
+            "vol": "1k",
+            "tier": "C",
+            "time": "4:35p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Chicago C",
+            "home": "Milwaukee",
+            "pick": "Milwaukee",
+            "entry": 55,
+            "winPct": 54.8,
+            "vol": "1.0k",
+            "tier": "C",
+            "time": "5:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Atlanta",
+            "home": "Philadelphia",
+            "pick": "Philadelphia",
+            "entry": 58,
+            "winPct": 58.1,
+            "vol": "0.3k",
+            "tier": "C",
+            "time": "4:05p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Minnesota",
+            "home": "Detroit",
+            "pick": "Detroit",
+            "entry": 53,
+            "winPct": 53,
+            "vol": "0.3k",
+            "tier": "C",
+            "time": "6:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "St. Louis",
+            "home": "San Francisco",
+            "pick": "San Francisco",
+            "entry": 54,
+            "winPct": 52.7,
+            "vol": "0.1k",
+            "tier": "C",
+            "time": "11:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Washington",
+            "home": "San Diego",
+            "pick": "San Diego",
+            "entry": 62,
+            "winPct": 61.1,
+            "vol": "0.1k",
+            "tier": "C",
+            "time": "8:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "New York M",
+            "home": "Miami",
+            "pick": "Miami",
+            "entry": 54,
+            "winPct": 53.8,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "4:10p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Cleveland",
+            "home": "Baltimore",
+            "pick": "Baltimore",
+            "entry": 53,
+            "winPct": 52,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "4:35p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Arizona",
+            "home": "Kansas City",
+            "pick": "Arizona",
+            "entry": 53,
+            "winPct": 51.5,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "5:10p"
+          }
+        ],
+        "soccer": [],
+        "wnba": []
+      },
+      "formingNote": "<b>The Mon Sep 7 slate is still forming.<\/b> Only 10 markets are listed and volume is light — prices are provisional and firm up overnight. The next ~8:00a ET refresh rebuilds this day with the full slate."
+    },
+    {
+      "id": "2026-09-08",
+      "dow": "Tue",
+      "d": 8,
+      "mon": "Sep",
+      "label": "Tue Sep 8",
+      "status": "forming",
+      "parlaySub": "Ordered short→long. Each leg shows its current Kalshi win % (mid) and ¢ entry (YES ask). Entry cost = product of asks; all-N-hit = product of no-vig win probabilities; EV is per $1 after spread.",
+      "swapNote": "<ul><li>Rebuilt from the latest pull — every leg is the top-win-% liquid favorite available in its game. Move arrows read “—”; the board is regenerated fresh each morning, not diffed.<\/li><\/ul>",
+      "timing": [
+        "<b>MLB — 12 games.<\/b> First pitches 9:40p–12:10a ET. <span class='now'>Re-pull any leg before you enter it.<\/span>",
+        "<b>Soccer — 5 games.<\/b> Sunderland vs Hull City ~5:45p ET; Crystal Palace vs Middlesbrough ~5:45p ET; Bournemouth vs Lincoln ~5:45p ET; Leyton Orient vs Bradford ~5:45p ET.",
+        "<span class='now'>No WNBA.<\/span> Kalshi has no open per-game WNBA markets — the regular season is over."
+      ],
+      "parlays": [],
+      "games": {
+        "mlb": [
+          {
+            "sport": "mlb",
+            "away": "Cincinnati",
+            "home": "Los Angeles D",
+            "pick": "Los Angeles D",
+            "entry": 61,
+            "winPct": 61.4,
+            "vol": "0.8k",
+            "tier": "C",
+            "time": "12:10a"
+          },
+          {
+            "sport": "mlb",
+            "away": "Toronto",
+            "home": "A's",
+            "pick": "Toronto",
+            "entry": 67,
+            "winPct": 64.2,
+            "vol": "0.2k",
+            "tier": "C",
+            "time": "1:05a"
+          },
+          {
+            "sport": "mlb",
+            "away": "Cleveland",
+            "home": "Baltimore",
+            "pick": "Cleveland",
+            "entry": 52,
+            "winPct": 51.3,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "9:35p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Los Angeles A",
+            "home": "Boston",
+            "pick": "Boston",
+            "entry": 61,
+            "winPct": 58.7,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "9:45p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Tampa Bay",
+            "home": "Atlanta",
+            "pick": "Tampa Bay",
+            "entry": 52,
+            "winPct": 50,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "10:15p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Colorado",
+            "home": "New York Y",
+            "pick": "New York Y",
+            "entry": 70,
+            "winPct": 69.3,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "10:05p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Pittsburgh",
+            "home": "Chicago WS",
+            "pick": "Chicago WS",
+            "entry": 56,
+            "winPct": 54.8,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "10:40p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Chicago C",
+            "home": "Milwaukee",
+            "pick": "Milwaukee",
+            "entry": 62,
+            "winPct": 60.8,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "10:40p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Arizona",
+            "home": "Kansas City",
+            "pick": "Arizona",
+            "entry": 54,
+            "winPct": 51.2,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "10:40p"
+          },
+          {
+            "sport": "mlb",
+            "away": "New York M",
+            "home": "Miami",
+            "pick": "Miami",
+            "entry": 56,
+            "winPct": 53.5,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "9:40p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Houston",
+            "home": "Philadelphia",
+            "pick": "Philadelphia",
+            "entry": 57,
+            "winPct": 54.2,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "9:40p"
+          },
+          {
+            "sport": "mlb",
+            "away": "Minnesota",
+            "home": "Detroit",
+            "pick": "Detroit",
+            "entry": 56,
+            "winPct": 52.9,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "9:40p"
+          }
+        ],
+        "soccer": [
+          {
+            "sport": "soc",
+            "away": "Sunderland",
+            "home": "Hull City",
+            "pick": "Sunderland",
+            "entry": 58,
+            "winPct": 56.9,
+            "vol": "0.4k",
+            "tier": "C",
+            "time": "5:45p"
+          },
+          {
+            "sport": "soc",
+            "away": "Crystal Palace",
+            "home": "Middlesbrough",
+            "pick": "Crystal Palace",
+            "entry": 57,
+            "winPct": 56.5,
+            "vol": "0.1k",
+            "tier": "C",
+            "time": "5:45p"
+          },
+          {
+            "sport": "soc",
+            "away": "Bournemouth",
+            "home": "Lincoln",
+            "pick": "Bournemouth",
+            "entry": 74,
+            "winPct": 74,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "5:45p"
+          },
+          {
+            "sport": "soc",
+            "away": "Leyton Orient",
+            "home": "Bradford",
+            "pick": "Bradford",
+            "entry": 43,
+            "winPct": 42.2,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "5:45p"
+          },
+          {
+            "sport": "soc",
+            "away": "Millwall",
+            "home": "Newcastle",
+            "pick": "Newcastle",
+            "entry": 61,
+            "winPct": 60.8,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "6p"
+          }
+        ],
+        "wnba": []
+      },
+      "formingNote": "<b>The Tue Sep 8 slate is still forming.<\/b> Only 17 markets are listed and volume is light — prices are provisional and firm up overnight. The next ~8:00a ET refresh rebuilds this day with the full slate."
+    },
+    {
+      "id": "2026-09-09",
+      "dow": "Wed",
+      "d": 9,
+      "mon": "Sep",
+      "label": "Wed Sep 9",
+      "status": "forming",
+      "parlaySub": "Ordered short→long. Each leg shows its current Kalshi win % (mid) and ¢ entry (YES ask). Entry cost = product of asks; all-N-hit = product of no-vig win probabilities; EV is per $1 after spread.",
+      "swapNote": "<ul><li>Rebuilt from the latest pull — every leg is the top-win-% liquid favorite available in its game. Move arrows read “—”; the board is regenerated fresh each morning, not diffed.<\/li><\/ul>",
+      "timing": [
+        "<b>MLB — 5 games.<\/b> First pitches 12:45a–1:10a ET. <span class='now'>Re-pull any leg before you enter it.<\/span>",
+        "<b>Soccer — 1 game.<\/b> Chelsea vs Leeds United ~6p ET.",
+        "<span class='now'>No WNBA.<\/span> Kalshi has no open per-game WNBA markets — the regular season is over."
+      ],
+      "parlays": [],
+      "games": {
+        "mlb": [
+          {
+            "sport": "mlb",
+            "away": "Cincinnati",
+            "home": "Los Angeles D",
+            "pick": "Los Angeles D",
+            "entry": 71,
+            "winPct": 69.5,
+            "vol": "0.1k",
+            "tier": "C",
+            "time": "1:10a"
+          },
+          {
+            "sport": "mlb",
+            "away": "Texas",
+            "home": "Seattle",
+            "pick": "Seattle",
+            "entry": 57,
+            "winPct": 55.4,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "12:40a"
+          },
+          {
+            "sport": "mlb",
+            "away": "Toronto",
+            "home": "A's",
+            "pick": "Toronto",
+            "entry": 57,
+            "winPct": 56.8,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "12:40a"
+          },
+          {
+            "sport": "mlb",
+            "away": "Washington",
+            "home": "San Diego",
+            "pick": "San Diego",
+            "entry": 63,
+            "winPct": 61.9,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "12:40a"
+          },
+          {
+            "sport": "mlb",
+            "away": "St. Louis",
+            "home": "San Francisco",
+            "pick": "St. Louis",
+            "entry": 55,
+            "winPct": 51,
+            "vol": "0.0k",
+            "tier": "C",
+            "time": "12:45a"
+          }
+        ],
+        "soccer": [
+          {
+            "sport": "soc",
+            "away": "Chelsea",
+            "home": "Leeds United",
+            "pick": "Chelsea",
+            "entry": 59,
+            "winPct": 58.8,
+            "vol": "0.2k",
+            "tier": "C",
+            "time": "6p"
+          }
+        ],
+        "wnba": []
+      },
+      "formingNote": "<b>The Wed Sep 9 slate is still forming.<\/b> Only 6 markets are listed and volume is light — prices are provisional and firm up overnight. The next ~8:00a ET refresh rebuilds this day with the full slate."
+    }
+  ],
+  "forwardLegs": [
+    {
+      "match": "Dortmund vs Paderborn",
+      "pick": "Dortmund",
+      "entry": 79,
+      "winPct": 78.8,
+      "vol": "1k",
+      "date": "Sat Sep 12"
+    },
+    {
+      "match": "Freiburg vs M´gladbach",
+      "pick": "Freiburg",
+      "entry": 56,
+      "winPct": 56.1,
+      "vol": "0.6k",
+      "date": "Sat Sep 12"
+    },
+    {
+      "match": "Augsburg vs Leverkusen",
+      "pick": "Leverkusen",
+      "entry": 55,
+      "winPct": 55.3,
+      "vol": "0.0k",
+      "date": "Sat Sep 12"
+    },
+    {
+      "match": "Elversberg vs Bayern Munich",
+      "pick": "Bayern Munich",
+      "entry": 81,
+      "winPct": 81.2,
+      "vol": "0.6k",
+      "date": "Sun Sep 13"
+    },
+    {
+      "match": "Leipzig vs Hamburg",
+      "pick": "Leipzig",
+      "entry": 68,
+      "winPct": 68.2,
+      "vol": "0.0k",
+      "date": "Sun Sep 13"
+    },
+    {
+      "match": "Bayern Munich vs Union Berlin",
+      "pick": "Bayern Munich",
+      "entry": 80,
+      "winPct": 60,
+      "vol": "0.2k",
+      "date": "Fri Sep 18"
+    }
+  ]
+}
+</script>
+
+<script type="application/json" id="room-data">{"messages":[{"id":"mt9s6a77096ss","name":"kira","text":"test 1","ts":1787729815843},{"id":"mt9tj0biset2k","name":"kira","text":"test 2","ts":1787732089182}]}</script>
+
+<script>
+(function () {
+  var raw = document.getElementById('board-data');
+  var strip = document.getElementById('cal-strip');
+  var view = document.getElementById('day-view');
+  if (!raw || !strip || !view) return;
+
+  var DATA;
+  try { DATA = JSON.parse(raw.textContent); } catch (e) { view.innerHTML = '<p class="sec-sub">Board data failed to parse.</p>'; return; }
+
+  var genEl = document.getElementById('gen-label');
+  var footGen = document.getElementById('foot-gen');
+  if (genEl && DATA.generatedLabel) genEl.textContent = DATA.generatedLabel;
+  if (footGen && DATA.generatedLabel) footGen.textContent = DATA.generatedLabel;
+
+  var activeId = DATA.days && DATA.days.length ? DATA.days[0].id : null;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function f1(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+  function multStr(m) { return (m >= 10 ? m.toFixed(1) : m.toFixed(2)) + '×'; }
+  function money(n) {
+    if (!isFinite(n)) n = 0;
+    var sign = n < 0 ? '−' : '';
+    var a = Math.abs(n);
+    var d = a >= 1000 ? 0 : 2;
+    return sign + '$' + a.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+
+  function calc(p) {
+    var e = 1, a = 1;
+    (p.legs || []).forEach(function (l) { e *= l.entry / 100; a *= l.winPct / 100; });
+    var mult = 1 / e, fair = 1 / a;
+    return { entry: e, all: a, mult: mult, fair: fair, ev: a * mult - 1 };
+  }
+
+  function parlayCard(p) {
+    var c = calc(p);
+    var legsHtml = (p.legs || []).map(function (l) {
+      var st = l.sport === 'soc' ? 'soc' : (l.sport === 'wnba' ? 'wnba' : 'mlb');
+      return '<li class="leg"><span class="sport-tag ' + st + '">' + st.toUpperCase() + '</span>'
+        + '<span class="match">' + esc(l.match) + ' · <span class="pick">' + esc(l.pick) + '</span></span>'
+        + '<span class="price"><b class="win">' + f1(l.winPct) + '%</b>'
+        + '<span class="sub">Kalshi · ' + l.entry + '¢ entry · <span class="mv fl">—</span></span></span></li>';
+    }).join('');
+    return '<article class="parlay' + (p.feature ? ' feature' : '') + '" data-mult="' + c.mult.toFixed(4)
+      + '" data-ev="' + c.ev.toFixed(4) + '">'
+      + '<div class="p-top"><div><h3 class="p-name">' + esc(p.name) + '</h3>'
+      + '<span class="p-legcount">' + esc(p.tag) + '</span></div>'
+      + '<div class="p-payout"><div class="mult">' + multStr(c.mult) + '</div>'
+      + '<div class="cap">risk $100 → ' + money(100 * c.mult) + '</div></div></div>'
+      + '<ul class="legs">' + legsHtml + '</ul>'
+      + '<div class="p-stats">'
+      + '<div class="p-stat"><div class="s-l">Entry cost</div><div class="s-v">' + (c.entry * 100).toFixed(1) + '¢</div></div>'
+      + '<div class="p-stat"><div class="s-l">All ' + (p.legs || []).length + ' hit</div><div class="s-v">' + f1(c.all * 100) + '%</div></div>'
+      + '<div class="p-stat"><div class="s-l">Fair multiple</div><div class="s-v">' + multStr(c.fair) + '</div></div>'
+      + '<div class="p-stat"><div class="s-l">EV / $1</div><div class="s-v ' + (c.ev < 0 ? 'neg' : 'pos') + '">' + (c.ev >= 0 ? '+' : '') + (c.ev * 100).toFixed(1) + '%</div></div>'
+      + '</div>'
+      + '<div class="p-size-out" aria-label="Stake outcome">'
+      + '<div class="pso"><span class="pso-l">Your stake</span><span class="pso-v" data-out="stake">—</span></div>'
+      + '<div class="pso"><span class="pso-l">If all legs hit</span><span class="pso-v accent" data-out="hit">—</span><span class="pso-sub" data-out="profit">—</span></div>'
+      + '<div class="pso"><span class="pso-l">Fair cash-out now</span><span class="pso-v teal" data-out="cash">—</span><span class="pso-sub" data-out="cashsub">—</span></div>'
+      + '<div class="pso"><span class="pso-l">Max loss</span><span class="pso-v neg" data-out="loss">—</span></div>'
+      + '</div>'
+      + '<div class="p-notes">'
+      + '<div class="p-note inval"><span class="n-l">Invalidate</span><span>' + esc(p.notes && p.notes.inval) + '</span></div>'
+      + '<div class="p-note size"><span class="n-l">Sizing</span><span>' + esc(p.notes && p.notes.size) + '</span></div>'
+      + '<div class="p-note risk"><span class="n-l">Risk</span><span>' + esc(p.notes && p.notes.risk) + '</span></div>'
+      + '</div></article>';
+  }
+
+  function gamesTable(list, cols) {
+    if (!list || !list.length) return '';
+    var n = list.length;
+    var head = '<thead><tr><th>' + cols[0] + '</th><th>Pick</th><th class="r">Entry</th><th class="r">Win&nbsp;%</th>'
+      + '<th class="r">Vig</th><th class="r">24h Vol</th><th>Liquidity</th><th>' + cols[1] + '</th><th>Tier</th></tr></thead>';
+    var rows = list.map(function (g, i) {
+      var bw = Math.max(6, Math.round(100 - i * (92 / n)));
+      if (g.skip) {
+        return '<tr><td>' + esc(g.away) + ' vs ' + esc(g.home) + '</td><td class="pick">' + esc(g.pick) + '</td>'
+          + '<td><span class="r num">—</span></td><td><span class="r num">~' + f1(g.winPct) + '</span></td>'
+          + '<td><span class="r num">—</span></td><td><span class="r num">' + esc(g.vol) + '</span></td>'
+          + '<td><span class="bar"><i style="width:' + bw + '%"></i></span></td><td>' + esc(g.time) + '</td>'
+          + '<td><span class="tier skip">skip</span></td></tr>';
+      }
+      var vig = g.winPct - g.entry;
+      var vneg = vig < 0;
+      return '<tr><td>' + esc(g.away) + ' vs ' + esc(g.home) + '</td><td class="pick">' + esc(g.pick) + '</td>'
+        + '<td><span class="r num">' + g.entry + '¢</span></td>'
+        + '<td><span class="r num">' + f1(g.winPct) + '</span></td>'
+        + '<td><span class="r num' + (vneg ? ' drag' : '') + '"' + (vneg ? '' : ' style="color:var(--good)"') + '>'
+        + (vig >= 0 ? '+' : '') + f1(vig) + '</span></td>'
+        + '<td><span class="r num">' + esc(g.vol) + '</span></td>'
+        + '<td><span class="bar"><i style="width:' + bw + '%"></i></span></td>'
+        + '<td>' + esc(g.time) + '</td>'
+        + '<td><span class="tier ' + esc((g.tier || 'c').toLowerCase()) + '">' + esc(g.tier) + '</span></td></tr>';
+    }).join('');
+    return '<div class="table-scroll"><table>' + head + '<tbody>' + rows + '</tbody></table></div>';
+  }
+
+  function kpiRow(day) {
+    var ps = (day.parlays || []).map(calc);
+    var kv = [];
+    kv.push(['Tickets', day.parlays.length, day.parlays.length ? 'auto-built for ' + day.label : 'slate still forming']);
+    if (day.parlays.length) {
+      var legMin = 99, legMax = 0;
+      day.parlays.forEach(function (p) { legMin = Math.min(legMin, p.legs.length); legMax = Math.max(legMax, p.legs.length); });
+      kv.push(['Leg range', legMin + '–' + legMax, 'per ticket']);
+    }
+    if (ps.length) {
+      var top = ps.reduce(function (a, b) { return b.mult > a.mult ? b : a; });
+      kv.push(['Top payout', multStr(top.mult), (f1(top.all * 100)) + '% true', 'accent']);
+      var best = ps.reduce(function (a, b) { return b.ev > a.ev ? b : a; });
+      kv.push(['Lowest drag', (best.ev * 100).toFixed(1) + '%', 'best ticket EV', 'teal']);
+    }
+    var pool = (day.games.mlb || []).concat(day.games.soccer || []).filter(function (g) { return !g.skip; });
+    if (pool.length) {
+      var bl = pool.reduce(function (a, b) { return (b.winPct - b.entry) > (a.winPct - a.entry) ? b : a; });
+      var v = bl.winPct - bl.entry;
+      kv.push(['Best leg value', bl.pick.split(' (')[0], bl.entry + '¢ vs ' + f1(bl.winPct) + '% fair' + (v >= 0 ? ' (+' + f1(v) + ')' : '')]);
+    }
+    kv.push(['Games in pool', pool.length, (day.games.mlb || []).length + ' MLB · ' + ((day.games.soccer || []).filter(function (g) { return !g.skip; }).length) + ' soccer']);
+    return kv.slice(0, 6).map(function (k) {
+      return '<div class="kpi"><div class="k-label">' + esc(k[0]) + '</div>'
+        + '<div class="k-val' + (k[3] ? ' ' + k[3] : '') + '">' + esc(k[1]) + '</div>'
+        + '<div class="k-note">' + esc(k[2]) + '</div></div>';
+    }).join('');
+  }
+
+  function renderDay(id) {
+    var day = null;
+    DATA.days.forEach(function (d) { if (d.id === id) day = d; });
+    if (!day) return;
+    activeId = id;
+
+    var html = '';
+    if (day.status !== 'full' && day.formingNote) {
+      html += '<div class="forming-banner">' + day.formingNote + '</div>';
+    }
+    html += '<div class="kpis">' + kpiRow(day) + '</div>';
+
+    html += '<section><div class="sec-head"><h2>' + esc(day.label) + ' — parlay tickets</h2>'
+      + '<span class="kount">priced off YES ask · compounding basis</span></div>';
+    if (day.parlaySub) html += '<p class="sec-sub">' + esc(day.parlaySub) + '</p>';
+    if (day.swapNote) {
+      html += '<div class="timing" style="border-left-color:var(--accent);margin-top:0;margin-bottom:18px;">'
+        + '<h4 style="color:var(--accent);">Swap-watch — higher-% legs</h4>' + day.swapNote + '</div>';
+    }
+    if ((day.parlays || []).length) {
+      html += '<div class="parlays">' + day.parlays.map(parlayCard).join('') + '</div>';
+    } else {
+      html += '<p class="sec-sub">No tickets yet for ' + esc(day.label) + ' — markets are open but too thin to build from. '
+        + 'The next ~8:00a ET refresh rebuilds this day once real volume arrives. The games listed below are the current pool.</p>';
+    }
+    html += '</section>';
+
+    if (day.timing && day.timing.length) {
+      html += '<div class="timing"><h4>Timing — ' + esc(day.label) + ' (all times ET)</h4><ul>'
+        + day.timing.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul></div>';
+    }
+
+    html += '<section><div class="sec-head"><h2>Games &amp; legs — ' + esc(day.label) + '</h2>'
+      + '<span class="kount">the pool the tickets are built from</span></div>'
+      + '<p class="sec-sub">Ranked by 24h volume (fill confidence), then win %. '
+      + '<b>Win %</b> is the Kalshi mid normalized to 100%; <b>Vig</b> is win % minus entry. '
+      + 'Tier <span class="tier a">A</span> deep &amp; tight, <span class="tier b">B</span> tradeable, '
+      + '<span class="tier c">C</span> thin.</p>';
+
+    if (day.games.mlb && day.games.mlb.length) {
+      html += '<h3 class="tbl-h">▪ MLB · ' + esc(day.label) + ' (' + day.games.mlb.length + ' games)</h3>'
+        + gamesTable(day.games.mlb, ['Matchup', 'First pitch ET']);
+    }
+    var soc = (day.games.soccer || []);
+    if (soc.length) {
+      html += '<h3 class="tbl-h">▪ Soccer · ' + esc(day.label) + '</h3>' + gamesTable(soc, ['Match', 'Kickoff']);
+    }
+    var wnba = (day.games.wnba || []);
+    if (wnba.length) {
+      html += '<h3 class="tbl-h">▪ WNBA · ' + esc(day.label) + '</h3>' + gamesTable(wnba, ['Matchup', 'Tip ET']);
+    } else {
+      html += '<h3 class="tbl-h">▪ WNBA</h3><div class="disclaimer" style="margin-top:0;">'
+        + '<b>No WNBA game markets.</b> Kalshi’s per-game series (KXWNBAGAME) has no open markets — the regular season is over. '
+        + 'Legs return to the board when playoff game markets list.</div>';
+    }
+
+    html += '</section>';
+    view.innerHTML = html;
+
+    Array.prototype.forEach.call(strip.children, function (b) {
+      b.classList.toggle('active', b.getAttribute('data-id') === id);
+    });
+    applySizer();
+  }
+
+  function renderCalendar() {
+    strip.innerHTML = DATA.days.map(function (d) {
+      return '<button type="button" class="cal-day' + (d.status !== 'full' ? ' forming' : '') + '" data-id="' + esc(d.id) + '" aria-label="' + esc(d.label) + '">'
+        + '<span class="cd-dow">' + esc(d.dow) + '</span>'
+        + '<span class="cd-d">' + esc(d.d) + '</span>'
+        + '<span class="cd-mon">' + esc(d.mon) + '</span>'
+        + (d.status !== 'full' ? '<span class="cd-dot"></span>' : '')
+        + '</button>';
+    }).join('');
+    Array.prototype.forEach.call(strip.children, function (b) {
+      b.addEventListener('click', function () { renderDay(b.getAttribute('data-id')); });
+    });
+  }
+
+  function renderForward() {
+    var box = document.getElementById('forward-tbl');
+    var list = DATA.forwardLegs || [];
+    if (!box) return;
+    if (!list.length) { document.getElementById('forward-sec').hidden = true; return; }
+    var rows = list.map(function (g) {
+      var vig = g.winPct - g.entry;
+      var vneg = vig < 0;
+      return '<tr><td>' + esc(g.match) + '</td><td class="pick">' + esc(g.pick) + '</td>'
+        + '<td><span class="r num">' + g.entry + '¢</span></td>'
+        + '<td><span class="r num">' + f1(g.winPct) + '</span></td>'
+        + '<td><span class="r num' + (vneg ? ' drag' : '') + '"' + (vneg ? '' : ' style="color:var(--good)"') + '>'
+        + (vig >= 0 ? '+' : '') + f1(vig) + '</span></td>'
+        + '<td><span class="r num">' + esc(g.vol) + '</span></td><td>' + esc(g.date) + '</td></tr>';
+    }).join('');
+    box.innerHTML = '<table><thead><tr><th>Match</th><th>Pick (1X2)</th><th class="r">Entry</th>'
+      + '<th class="r">Win&nbsp;%</th><th class="r">Vig</th><th class="r">24h Vol</th><th>Date</th></tr></thead>'
+      + '<tbody>' + rows + '</tbody></table>';
+  }
+
+  // ---- stake sizer (re-applied on every day render) ----
+  var num = document.getElementById('sz-stake');
+  var rng = document.getElementById('sz-range');
+  var tStakeEl = document.getElementById('sz-total-stake');
+  var tCashEl = document.getElementById('sz-total-cash');
+
+  function readStake() {
+    var v = parseFloat(num && num.value);
+    if (!isFinite(v) || v < 0) v = 0;
+    if (v > 1000000) v = 1000000;
+    return v;
+  }
+  function setOut(card, key, val) {
+    var el = card.querySelector('[data-out="' + key + '"]');
+    if (el) el.textContent = val;
+  }
+  function applySizer() {
+    if (!num) return;
+    var stake = readStake();
+    try { localStorage.setItem('kpd_stake', String(stake)); } catch (e) {}
+    if (rng && document.activeElement !== rng) rng.value = Math.min(stake, parseFloat(rng.max));
+    var cards = Array.prototype.slice.call(view.querySelectorAll('.parlay[data-mult]'));
+    var tS = 0, tC = 0;
+    cards.forEach(function (card) {
+      var mult = parseFloat(card.getAttribute('data-mult'));
+      var ev = parseFloat(card.getAttribute('data-ev'));
+      var hit = stake * mult, profit = hit - stake, cash = stake * (1 + ev), spread = cash - stake;
+      setOut(card, 'stake', money(stake));
+      setOut(card, 'hit', money(hit));
+      setOut(card, 'profit', '+' + money(profit) + ' profit');
+      setOut(card, 'cash', money(cash));
+      setOut(card, 'cashsub', money(spread) + ' vs your stake');
+      setOut(card, 'loss', money(-stake));
+      tS += stake; tC += cash;
+    });
+    if (tStakeEl) tStakeEl.textContent = money(tS);
+    if (tCashEl) tCashEl.textContent = money(tC);
+  }
+
+  try {
+    var saved = parseFloat(localStorage.getItem('kpd_stake'));
+    if (isFinite(saved) && saved >= 0 && num) num.value = saved;
+  } catch (e) {}
+  if (num) num.addEventListener('input', applySizer);
+  if (rng) rng.addEventListener('input', function () { num.value = rng.value; applySizer(); });
+  Array.prototype.slice.call(document.querySelectorAll('.sz-preset')).forEach(function (b) {
+    b.addEventListener('click', function () { if (num) num.value = b.getAttribute('data-v'); applySizer(); });
+  });
+
+  renderCalendar();
+  renderForward();
+  if (activeId) renderDay(activeId);
+})();
+</script>
+
+<script>
+(function () {
+  var MAX_MSGS = 150, MAX_LEN = 500;
+  var INIT_LIST = '<li class="r-empty" id="room-empty">No messages yet. Anyone with the link can start the thread.</li>';
+  var INIT_NOTE = 'Connecting to the shared room…';
+  var INIT_PLACEHOLDER = 'Talk the board — reads, injuries, line moves…';
+
+  var dataEl  = document.getElementById('room-data');
+  var listEl  = document.getElementById('room-msgs');
+  var formEl  = document.getElementById('room-form');
+  var nameEl  = document.getElementById('room-name');
+  var textEl  = document.getElementById('room-text');
+  var sendEl  = document.getElementById('room-send');
+  var countEl = document.getElementById('room-count');
+  var noteEl  = document.getElementById('room-note');
+  var stateEl = document.getElementById('room-state');
+  if (!dataEl || !listEl || !formEl) return;
+
+  var state = { messages: [] };
+  try {
+    var parsed = JSON.parse(dataEl.textContent);
+    if (parsed && Array.isArray(parsed.messages)) state.messages = parsed.messages;
+  } catch (e) {}
+
+  var artifact = null, writable = false, busy = false;
+
+  try {
+    var savedName = localStorage.getItem('kpd_room_name');
+    if (savedName) nameEl.value = savedName;
+  } catch (e) {}
+
+  function fmtTime(ts) {
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    var diff = (Date.now() - ts) / 1000;
+    if (diff < 45) return 'just now';
+    if (diff < 3600) return Math.max(1, Math.floor(diff / 60)) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ', ' +
+           d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function render() {
+    listEl.innerHTML = '';
+    if (!state.messages.length) {
+      var li0 = document.createElement('li');
+      li0.className = 'r-empty';
+      li0.textContent = 'No messages yet.' + (writable ? ' Start the thread.' : '');
+      listEl.appendChild(li0);
+      return;
+    }
+    state.messages.slice(-MAX_MSGS).forEach(function (m) {
+      var li = document.createElement('li');
+      li.className = 'r-msg';
+      var meta = document.createElement('div');
+      meta.className = 'r-meta';
+      var nm = document.createElement('span');
+      nm.className = 'r-name';
+      nm.textContent = (m && m.name) ? String(m.name) : 'anon';
+      meta.appendChild(nm);
+      meta.appendChild(document.createTextNode('   ·   ' + fmtTime(m && m.ts)));
+      var body = document.createElement('div');
+      body.className = 'r-body';
+      body.textContent = (m && m.text) ? String(m.text) : '';
+      li.appendChild(meta);
+      li.appendChild(body);
+      listEl.appendChild(li);
+    });
+    listEl.scrollTop = listEl.scrollHeight;
+  }
+
+  function refreshSendState() {
+    sendEl.disabled = !(writable && !busy &&
+      textEl.value.trim().length > 0 && nameEl.value.trim().length > 0);
+  }
+
+  function buildDoc() {
+    dataEl.textContent = JSON.stringify({ messages: state.messages.slice(-MAX_MSGS) })
+      .replace(/</g, '\\u003c');
+    var L = {
+      list: listEl.innerHTML, name: nameEl.value, text: textEl.value, count: countEl.textContent,
+      note: noteEl.textContent, st: stateEl.textContent, stc: stateEl.className,
+      nd: nameEl.disabled, td: textEl.disabled, sd: sendEl.disabled, ph: textEl.placeholder
+    };
+    listEl.innerHTML = INIT_LIST;
+    nameEl.value = ''; textEl.value = ''; countEl.textContent = '0';
+    nameEl.disabled = false; textEl.disabled = false; sendEl.disabled = true;
+    noteEl.textContent = INIT_NOTE; textEl.placeholder = INIT_PLACEHOLDER;
+    stateEl.textContent = '…'; stateEl.className = 'r-state';
+    var html = '<!doctype html>\n' + document.documentElement.outerHTML;
+    listEl.innerHTML = L.list; nameEl.value = L.name; textEl.value = L.text;
+    countEl.textContent = L.count; noteEl.textContent = L.note;
+    stateEl.textContent = L.st; stateEl.className = L.stc;
+    nameEl.disabled = L.nd; textEl.disabled = L.td; sendEl.disabled = L.sd; textEl.placeholder = L.ph;
+    return html;
+  }
+
+  function setReadOnly(msg) {
+    writable = false;
+    stateEl.textContent = 'read-only'; stateEl.className = 'r-state ro';
+    nameEl.disabled = true; textEl.disabled = true; sendEl.disabled = true;
+    textEl.placeholder = 'Read-only view';
+    noteEl.textContent = msg;
+    render();
+  }
+  function setLive() {
+    writable = true;
+    stateEl.textContent = 'live'; stateEl.className = 'r-state live';
+    nameEl.disabled = false; textEl.disabled = false;
+    textEl.placeholder = INIT_PLACEHOLDER;
+    noteEl.innerHTML = 'Anyone with <b>edit</b> access to this link can post. Messages are public to everyone with the link and are not identity-verified.';
+    refreshSendState();
+    render();
+  }
+
+  textEl.addEventListener('input', function () {
+    countEl.textContent = String(textEl.value.length);
+    refreshSendState();
+  });
+  nameEl.addEventListener('input', refreshSendState);
+
+  formEl.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!writable || busy || !artifact) return;
+    var name = nameEl.value.trim().slice(0, 24);
+    var text = textEl.value.trim().slice(0, MAX_LEN);
+    if (!name || !text) return;
+    try { localStorage.setItem('kpd_room_name', name); } catch (e2) {}
+
+    busy = true;
+    var msg = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      name: name, text: text, ts: Date.now()
+    };
+    state.messages.push(msg);
+    if (state.messages.length > MAX_MSGS) state.messages = state.messages.slice(-MAX_MSGS);
+    textEl.value = ''; countEl.textContent = '0';
+    refreshSendState();
+    noteEl.textContent = 'Posting…';
+    render();
+
+    artifact.publish(buildDoc()).then(function () {
+      noteEl.textContent = 'Posted — refreshing the room…';
+    }).catch(function (err) {
+      busy = false;
+      var i = state.messages.indexOf(msg);
+      if (i > -1) state.messages.splice(i, 1);
+      render();
+      var code = err && err.code;
+      if (code === 'conflict') {
+        noteEl.textContent = 'Someone else just posted — reloading the latest…';
+        setTimeout(function () { location.reload(); }, 900);
+      } else if (code === 'not_granted' || code === 'not_writer') {
+        setReadOnly('This link is view-only — ask the owner for edit access to post here.');
+      } else {
+        textEl.value = text; countEl.textContent = String(text.length);
+        noteEl.textContent = 'Could not post (' + (code || 'error') + '). Try again.';
+        refreshSendState();
+      }
+    });
+  });
+
+  render();
+
+  if (window.claude && typeof window.claude.use === 'function') {
+    window.claude.use('artifact').then(function (ns) {
+      if (ns && typeof ns.publish === 'function') { artifact = ns; setLive(); }
+      else setReadOnly('Live chat runs on the shared claude.ai link — this copy is read-only.');
+    }).catch(function () {
+      setReadOnly('Live chat is unavailable here — this copy is read-only.');
+    });
+  } else {
+    setReadOnly('Live chat runs on the shared claude.ai artifact link — this local copy is read-only.');
+  }
+})();
+</script>
+
+<script>
+(function () {
+  var btn = document.getElementById('refresh-btn');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="ic">↻</span> Reloading…';
+    try { location.reload(); } catch (e) { location.href = location.pathname + location.search; }
+  });
+})();
+</script>
+
+</body></html>
